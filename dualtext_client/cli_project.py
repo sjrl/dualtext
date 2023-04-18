@@ -83,8 +83,8 @@ def delete_project(project_id):
     default=sys.stdin
 )
 @click.option('--action', '-a', type=str)
-@click.option('--finished', 'status', flag_value=True)
-@click.option('--notfinished', 'status', flag_value=False)
+@click.option('--finished', 'status', type=bool)
+@click.option('--notfinished', 'status', type=bool)
 @click.option('--label', '-l', type=str, multiple=True)
 @click.option(
     "--out",
@@ -107,5 +107,38 @@ def download_project(project_id, out, action=None, label=None, status=None):
 
     click.echo(
         json.dumps(p.get_annotations(project_id, task_params=task_params, annotation_params=annotation_params)),
+        file=out
+    )
+
+
+@project.command('stats')
+@click.option(
+    '--project-id',
+    '-p',
+    help='Id of project that you would like to download from.',
+    type=click.INT,
+    default=sys.stdin
+)
+@click.option('--action', '-a', type=str)
+@click.option(
+    "--out",
+    help="File to write the Output to, omit to display on screen.",
+    type=click.File("w"),
+    default=sys.stdout,
+)
+def download_project(project_id, out, action=None):
+    task_params = {}
+    annotation_params = {}
+    if action is not None:
+        task_params['action'] = action
+
+    s = authenticate()
+    p = Project(s)
+
+    click.echo(
+        json.dumps(
+            p.get_annotation_statistics(project_id, task_params=task_params, annotation_params=annotation_params),
+            indent=2,
+        ),
         file=out
     )

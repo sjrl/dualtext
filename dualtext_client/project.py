@@ -7,7 +7,8 @@ from task import Task
 from search import Search
 from annotation_group import AnnotationGroup
 import math
-from collections import defaultdict
+from tqdm import tqdm
+
 
 class Project(ApiBase):
     """
@@ -98,7 +99,6 @@ class Project(ApiBase):
             group_annotation_lookup=annotation_group_map
         )
 
-
     def create_labels(self, labels, project_id):
         label_instance = Label(self.session, project_id)
         created_labels = []
@@ -158,16 +158,50 @@ class Project(ApiBase):
         annotations = []
         doc_ids = []
         documents = []
-        for task in tasks:
+        for task in tqdm(tasks, desc="Retrieving Annotations and Doc IDs"):
             anno_instance = Annotation(self.session, task['id'])
             annos = anno_instance.list_resources(annotation_params)
             for anno in annos:
                 doc_ids += anno['documents']
             annotations.extend(annos)
-        for doc_id in doc_ids:
+        for doc_id in tqdm(doc_ids, desc="Retrieving Documents"):
             documents.append(document_instance.get(doc_id))
         return {
             'annotations': annotations,
             'documents': documents,
             'labels': labels
+        }
+
+    def get_annotation_statistics(self, project_id, task_params={}, annotation_params={}):
+        self.validate_data(task_params, 'task_filter.schema.json')
+        self.validate_data(annotation_params, 'annotation_filter.schema.json')
+        task_instance = Task(self.session, project_id)
+        tasks = task_instance.list_resources(task_params)
+        annotator_stats = {}
+        for task in tasks:
+            annotator_id = task["annotator"]
+            if annotator_id is None:
+                annotator_id = "unclaimed"
+
+            if annotator_id not in annotator_stats:
+                annotator_stats[annotator_id] = {"num_tasks_finished": 0, "num_tasks_open": 0}
+
+            if task["is_finished"]:
+                annotator_stats[annotator_id]["num_tasks_finished"] += 1
+            else:
+                annotator_stats[annotator_id]["num_tasks_open"] += 1
+
+        # Sanity checks
+        counter = 0
+        for anno in annotator_stats.values():
+            counter += anno["num_tasks_finished"]
+            counter += anno["num_tasks_open"]
+
+        if counter != len(tasks):
+            raise Warning("Number of tasks does not match summed tasks from annotators")
+
+        return {
+            'project_id': project_id,
+            'annotator_stats': annotator_stats,
+            'total_tasks': len(tasks)
         }

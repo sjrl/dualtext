@@ -26,7 +26,7 @@
             "enum": ["annotate", "review", "duplicate"]
         },
         "is_finished": {
-            "description": "Indicates wether this task was fully completed.",
+            "description": "Indicates whether this task was fully completed.",
             "type": "boolean"
         }
     },

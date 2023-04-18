@@ -1,5 +1,6 @@
 from api_base import ApiBase
 
+
 class Task(ApiBase):
     """
     A class to interact with tasks from the dualtext api.
