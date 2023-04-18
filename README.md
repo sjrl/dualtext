@@ -35,7 +35,7 @@ Dualtext is split into 3 distinct modules. Under the root directory you will fin
 
 `/dualtext_server` -> contains all backend related code
 
-`/frontend` -> contains all frontend related code
+`/dualtext_server/frontend` -> contains all frontend related code
 
 **3. getting the server running**
 
@@ -136,8 +136,8 @@ c = c.create(payload)
 d = Document(session=s, corpus=c.id)
 documents = []
 with open('some_file_path') as f:
-        for line in f:
-            documents.append({'content': line})
+    for line in f:
+        documents.append({'content': line})
 d.batch_create(documents)
 ```
 
@@ -151,7 +151,7 @@ $ dualtext mkproj --project-data /some/file/path/file.json
 ```
 
 The `mkproj` command accepts a file path to a json file containing all the information for your project as an argument.
-You can find an example of the file's structure at `dualtext_client/examples/create_from_scratch/`.
+You can find an example of the file's structure at `dualtext_client/examples/create_from_scratch_w_groups.json`.
 The schema expected to be followed can be found at `dualtext_client/schemas/project_from_scratch.schema.json`.
 
 ### Implementing custom features and search methods
