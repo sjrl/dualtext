@@ -156,11 +156,6 @@ class Project(ApiBase):
         task_instance = Task(self.session, project_id)
         label_instance = Label(self.session, project_id)
 
-        documents = []
-        for corpus_id in tqdm(corpus_ids, desc="Retrieving Corpora"):
-            document_instance = Document(self.session, corpus_id=corpus_id)
-            documents.extend(document_instance.list_resources())
-
         tasks = task_instance.list_resources(task_params)
         annotations = []
         for task in tqdm(tasks, desc="Retrieving Annotations"):
@@ -169,6 +164,12 @@ class Project(ApiBase):
             for a in annos:
                 a['is_finished'] = task['is_finished']
             annotations.extend(annos)
+
+        # TODO Consider filtering out documents from corpus that don't appear in the retrieved annotations
+        documents = []
+        for corpus_id in tqdm(corpus_ids, desc="Retrieving Corpora"):
+            document_instance = Document(self.session, corpus_id=corpus_id)
+            documents.extend(document_instance.list_resources())
 
         labels = label_instance.list_resources()
 
