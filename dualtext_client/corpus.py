@@ -1,5 +1,6 @@
 from api_base import ApiBase
 
+
 class Corpus(ApiBase):
     """
     A class to interact with corpora from the dualtext api.

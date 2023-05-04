@@ -3,6 +3,7 @@ import keyring
 from session import Session
 from settings import API_URL
 
+
 def authenticate():
     access_token = keyring.get_password('dualtext', 'token')
     if access_token:

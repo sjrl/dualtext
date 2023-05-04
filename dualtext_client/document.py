@@ -1,5 +1,6 @@
 from api_base import ApiBase
 
+
 class Document(ApiBase):
     """
     A class to interact with documents from the dualtext api.
