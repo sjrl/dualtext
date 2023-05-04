@@ -26,7 +26,7 @@ class Project(ApiBase):
         created_corpus = corpus.create(data['corpus'])
 
         project_data = data['project']
-        project_data['corpora'] = [ created_corpus['id'] ]
+        project_data['corpora'] = [created_corpus['id']]
         project = self.create(project_data)
 
         labels = data.get('labels', None)
@@ -150,23 +150,30 @@ class Project(ApiBase):
     def get_annotations(self, project_id, task_params={}, annotation_params={}):
         self.validate_data(task_params, 'task_filter.schema.json')
         self.validate_data(annotation_params, 'annotation_filter.schema.json')
+        project_info = [x for x in self.list_resources() if x["id"] == project_id][0]
+        corpus_ids = project_info['corpora']
+
         task_instance = Task(self.session, project_id)
         label_instance = Label(self.session, project_id)
-        labels = label_instance.list_resources()
-        document_instance = Document(self.session)
+
+        documents = []
+        for corpus_id in tqdm(corpus_ids, desc="Retrieving Corpora"):
+            document_instance = Document(self.session, corpus_id=corpus_id)
+            documents.extend(document_instance.list_resources())
+
         tasks = task_instance.list_resources(task_params)
         annotations = []
-        doc_ids = []
-        documents = []
-        for task in tqdm(tasks, desc="Retrieving Annotations and Doc IDs"):
+        for task in tqdm(tasks, desc="Retrieving Annotations"):
             anno_instance = Annotation(self.session, task['id'])
             annos = anno_instance.list_resources(annotation_params)
-            for anno in annos:
-                doc_ids += anno['documents']
+            for a in annos:
+                a['is_finished'] = task['is_finished']
             annotations.extend(annos)
-        for doc_id in tqdm(doc_ids, desc="Retrieving Documents"):
-            documents.append(document_instance.get(doc_id))
+
+        labels = label_instance.list_resources()
+
         return {
+            'project': project_info,
             'annotations': annotations,
             'documents': documents,
             'labels': labels
