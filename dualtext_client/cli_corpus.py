@@ -62,7 +62,9 @@ def download_corpus(corpus_id, out):
     session = authenticate()
     doc_instance = Document(session, corpus_id=corpus_id)
 
+    docs = {"documents": doc_instance.list_resources()}
+
     click.echo(
-        json.dumps(doc_instance.list_resources()),
+        json.dumps(docs),
         file=out
     )
