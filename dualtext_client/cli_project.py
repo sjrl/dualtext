@@ -82,9 +82,8 @@ def delete_project(project_id):
     type=click.INT,
     default=sys.stdin
 )
-@click.option('--action', '-a', type=str)
-@click.option('--finished', 'status', type=bool)
-@click.option('--notfinished', 'status', type=bool)
+@click.option('--action', '-a', type=str, default=None)
+@click.option('--finished/--notfinished', 'status', type=bool, is_flag=True, default=None)
 @click.option('--label', '-l', type=str, multiple=True)
 @click.option(
     "--out",
@@ -126,7 +125,7 @@ def download_project(project_id, out, action=None, label=None, status=None):
     type=click.File("w"),
     default=sys.stdout,
 )
-def download_project(project_id, out, action=None):
+def download_stats(project_id, out, action=None):
     task_params = {}
     annotation_params = {}
     if action is not None:
