@@ -203,28 +203,29 @@ class Project(ApiBase):
             annotator_id = task["annotator"]
             # created_at = datetime.strptime(task["created_at"], '%Y-%m-%dT%H:%M:%S.%fZ')
             modified_at = datetime.strptime(task["modified_at"], '%Y-%m-%dT%H:%M:%S.%fZ')
-            month = str(modified_at.month)
+            month = str(modified_at.strftime("%B"))
             if annotator_id is None:
                 annotator_id = "unclaimed"
 
             if annotator_id not in annotator_stats:
-                annotator_stats[annotator_id]["num_tasks_finished"] = 0
-                annotator_stats[annotator_id]["num_tasks_open"] = 0
+                annotator_stats[annotator_id] = {
+                    "total": {"num_tasks_finished": 0, "num_tasks_open": 0}
+                }
 
-            if modified_at.month not in annotator_stats[annotator_id]:
+            if month not in annotator_stats[annotator_id]:
                 annotator_stats[annotator_id][month] = {"num_tasks_finished": 0}
 
             if task["is_finished"]:
-                annotator_stats[annotator_id]["num_tasks_finished"] += 1
+                annotator_stats[annotator_id]["total"]["num_tasks_finished"] += 1
                 annotator_stats[annotator_id][month]["num_tasks_finished"] += 1
             else:
-                annotator_stats[annotator_id]["num_tasks_open"] += 1
+                annotator_stats[annotator_id]["total"]["num_tasks_open"] += 1
 
         # Sanity checks
         counter = 0
         for anno in annotator_stats.values():
-            counter += anno["num_tasks_finished"]
-            counter += anno["num_tasks_open"]
+            counter += anno["total"]["num_tasks_finished"]
+            counter += anno["total"]["num_tasks_open"]
 
         if counter != len(tasks):
             raise Warning("Number of tasks does not match summed tasks from annotators")
