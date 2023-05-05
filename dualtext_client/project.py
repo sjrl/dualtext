@@ -182,8 +182,6 @@ class Project(ApiBase):
             document_instance = Document(self.session)
             for doc_id in tqdm(doc_ids, desc="Downloading Documents"):
                 documents.append(document_instance.get(doc_id))
-        except Exception as error:
-            print("Got a non-HTTP error:", error)
 
         labels = label_instance.list_resources()
 
