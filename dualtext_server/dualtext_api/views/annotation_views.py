@@ -30,7 +30,6 @@ class AnnotationListView(APIView):
             return Response(data)
         return Response('You must be logged in to request this resource.', status.HTTP_401_UNAUTHORIZED)
 
-
     def post(self, request, task_id):
         serializer = AnnotationSerializer
         permission = AuthenticatedReadAdminCreate
@@ -42,6 +41,7 @@ class AnnotationListView(APIView):
             serialized.save()
             return Response(serialized.data, status=status.HTTP_201_CREATED)
         return Response('You are not permitted to access this resource.', status.HTTP_403_FORBIDDEN)
+
 
 class AnnotationDetailView(generics.RetrieveUpdateAPIView):
     queryset = Annotation.objects.all()

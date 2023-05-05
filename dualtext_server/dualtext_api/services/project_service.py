@@ -6,6 +6,7 @@ from .run_service import RunService
 import math
 import datetime
 
+
 class ProjectService():
     def __init__(self, project_id):
         self.project = Project.objects.get(id=project_id)
@@ -70,7 +71,6 @@ class ProjectService():
         else:
             self.open_review_annotations = self.get_total_annotations().filter(Q(task__is_finished=False) & Q(task__action=Annotation.REVIEW))
             return self.open_review_annotations
-            
 
     def get_annotation_statistics(self):
         total = self.get_total_annotations().count()
@@ -224,7 +224,7 @@ class ProjectService():
             label_count = Label.objects.filter(project=self.project).count()
             LOWER_THRESHOLD = 40
             label_num = math.floor(label_count/100 * LOWER_THRESHOLD)
-            label_names = [ name for name, val in sorted_statistics[0:label_num]]
+            label_names = [name for name, val in sorted_statistics[0:label_num]]
             labels = Label.objects.filter(name__in=label_names, project=self.project).all()
         return labels
 

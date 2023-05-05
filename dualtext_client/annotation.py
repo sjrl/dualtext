@@ -1,5 +1,6 @@
 from api_base import ApiBase
 
+
 class Annotation(ApiBase):
     """
     A class to interact with annotations from the dualtext api.
@@ -39,7 +40,6 @@ class Annotation(ApiBase):
                         payload['documents'][0] = document['id']
                     else:
                         payload['documents'][1] = document['id']
-
 
             if group_annotation_lookup and group_annotation_lookup.get(anno['identifier'], None):
                 payload['annotation_group'] = group_annotation_lookup[anno['identifier']]
