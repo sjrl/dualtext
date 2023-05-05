@@ -59,7 +59,7 @@ class ApiBase():
                 http_error_msg = u'%s Server Error: %s for url: %s' % (response.status_code, response.reason, response.url)
             elif 400 <= response.status_code < 500:
                 http_error_msg = u'%s Client Error: %s for url: %s' % (response.status_code, response.json(), response.url)
-            
+
             if http_error_msg:
                 raise HTTPError(http_error_msg, response=response)
             else:

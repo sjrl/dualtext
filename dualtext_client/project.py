@@ -8,6 +8,8 @@ from search import Search
 from annotation_group import AnnotationGroup
 import math
 from tqdm import tqdm
+from datetime import datetime
+from requests.exceptions import HTTPError
 
 
 class Project(ApiBase):
@@ -158,18 +160,30 @@ class Project(ApiBase):
 
         tasks = task_instance.list_resources(task_params)
         annotations = []
+        doc_ids = []
         for task in tqdm(tasks, desc="Retrieving Annotations"):
             anno_instance = Annotation(self.session, task['id'])
             annos = anno_instance.list_resources(annotation_params)
             for a in annos:
                 a['is_finished'] = task['is_finished']
+                doc_ids += a['documents']
             annotations.extend(annos)
 
-        # TODO Consider filtering out documents from corpus that don't appear in the retrieved annotations
+        # Remove duplicate IDs and sort
+        doc_ids = sorted(list(set(doc_ids)))
+
         documents = []
-        for corpus_id in tqdm(corpus_ids, desc="Retrieving Corpora"):
-            document_instance = Document(self.session, corpus_id=corpus_id)
-            documents.extend(document_instance.list_resources())
+        try:
+            for corpus_id in tqdm(corpus_ids, desc="Retrieving Corpora"):
+                document_instance = Document(self.session, corpus_id=corpus_id)
+                documents.extend(document_instance.list_resources())
+        except HTTPError as error:
+            print("Got an HTTP error. Trying alternative download", error)
+            document_instance = Document(self.session)
+            for doc_id in tqdm(doc_ids, desc="Downloading Documents"):
+                documents.append(document_instance.get(doc_id))
+        except Exception as error:
+            print("Got a non-HTTP error:", error)
 
         labels = label_instance.list_resources()
 
@@ -185,17 +199,26 @@ class Project(ApiBase):
         self.validate_data(annotation_params, 'annotation_filter.schema.json')
         task_instance = Task(self.session, project_id)
         tasks = task_instance.list_resources(task_params)
+
         annotator_stats = {}
-        for task in tasks:
+        for task in tqdm(tasks, desc="Gathering stats by task"):
             annotator_id = task["annotator"]
+            # created_at = datetime.strptime(task["created_at"], '%Y-%m-%dT%H:%M:%S.%fZ')
+            modified_at = datetime.strptime(task["modified_at"], '%Y-%m-%dT%H:%M:%S.%fZ')
+            month = str(modified_at.month)
             if annotator_id is None:
                 annotator_id = "unclaimed"
 
             if annotator_id not in annotator_stats:
-                annotator_stats[annotator_id] = {"num_tasks_finished": 0, "num_tasks_open": 0}
+                annotator_stats[annotator_id]["num_tasks_finished"] = 0
+                annotator_stats[annotator_id]["num_tasks_open"] = 0
+
+            if modified_at.month not in annotator_stats[annotator_id]:
+                annotator_stats[annotator_id][month] = {"num_tasks_finished": 0}
 
             if task["is_finished"]:
                 annotator_stats[annotator_id]["num_tasks_finished"] += 1
+                annotator_stats[annotator_id][month]["num_tasks_finished"] += 1
             else:
                 annotator_stats[annotator_id]["num_tasks_open"] += 1
 
